@@ -26,7 +26,7 @@
 		window.addEventListener('load', function() {
 
 			var largeBox_open = false;
-			var medumBox_open = false;
+			var mediumBox_open = false;
 
 			window.awe.init({
 				device_type: awe.AUTO_DETECT_DEVICE_TYPE,
@@ -171,7 +171,28 @@
 									largeBox_open = !largeBox_open;
 									break;
 									case 'mediumBox':
-
+										if (!mediumBox_open){
+											awe.projections.update({
+												data:{
+													animation: {
+														duration: 1
+													},
+													position: {y: 190}
+												},
+												where: {id: 'smallBox'}
+											});
+										} else {
+											awe.projections.update({
+												data: {
+													animation: {
+														duration: 1
+													},
+													position: {y: -31}
+												},
+												where: {id: 'smallBox'}
+											});
+										}
+									mediumBox_open = !mediumBox_open;
 									break;
 								}
 								}, false);//window.addEventListener

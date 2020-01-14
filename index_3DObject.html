@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>ARBoxes</title>
+	<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0" />
+	<meta charset="utf-8"/>
+	<style type="text/css">
+		* {
+			margin: 0;
+			padding: 0;
+		}
+		#container {
+			position: absolute;
+			left: 0;
+			top: 0;
+			bottom: 0;
+			right: 0;
+			overflow: hidden;
+		}
+	</style>
+</head>
+<body>
+	<div id="container"></div>
+	<script type="text/javascript" src="js/awe-loader-min.js"></script>
+	<script type="text/javascript">
+		window.addEventListener('load', function() {
+
+			window.awe.init({
+				device_type: awe.AUTO_DETECT_DEVICE_TYPE,
+				settings: {
+					container_id: 'container',
+					default_camera_position: { x:0, y:0, z:0 },
+					default_lights:[
+					{
+						id: 'point_light',
+						type: 'point',
+						color: 0xFFFFFF,
+						intensity: 1,
+						decay: 2,
+						power: 1000
+					},
+					],
+				},
+				ready: function() {
+					awe.util.require([
+					{
+						capabilities: ['gum','webgl'],
+						files: [ 
+						[ 'js/awe-standard-dependencies.js', 'js/awe-standard.js'],
+						'js/awe-standard-object_clicked.js',
+						'js/awe-jsartoolkit-dependencies.js',
+						'js/awe.marker_ar.js',
+						],
+						success: function() { 
+							window.awe.setup_scene();			
+							awe.pois.add({ id:'marker', position: { x:0, y:0, z:10000 }, visible: false });
+							awe.projections.add({ 
+								id:'model',
+								geometry: {path: 'models/R2.obj'},
+								position: {x: 0, y: 0, z: 0},
+								scale: {x: 50, y: 50, z: 50},
+								material: {path: 'models/R2.mtl'}
+							}, { poi_id: 'marker' });
+
+							awe.events.add([{
+								id: 'ar_tracking_marker',
+								device_types: {
+									pc: 1,
+									android: 1
+								},
+								register: function(handler) {
+									window.addEventListener('ar_tracking_marker', handler, false);
+								},
+								unregister: function(handler) {
+									window.removeEventListener('ar_tracking_marker', handler, false);
+								},
+								handler: function(event) {
+									if (event.detail) {
+										if (event.detail['64']) { // we are mapping marker #64 to this projection
+											awe.pois.update({
+												data: {
+													visible: true,
+													position: { x:0, y:0, z:0 },
+													matrix: event.detail['64'].transform
+												},
+												where: {
+													id: 'marker'
+												}
+											});
+											awe.projections.update({
+												data: {
+													position: { x:0, y:0, z:0 }
+												},
+												where: {
+													id: 'model'
+												}
+											});//awe.projection.update
+										}
+										else {
+											awe.pois.update({
+												data: {
+													visible: false
+												},
+												where: {
+													id: 'marker'
+												}
+											});
+											awe.projections.update({
+												data: {
+													position: {y: -1000000}
+												},
+												where: {
+													id: 'model'
+												}
+											});
+										}
+										awe.scene_needs_rendering = 1;
+									}
+								}
+							}]);
+						},
+					},
+					{
+						capabilities: [],
+						success: function() { 
+							document.body.innerHTML = '<p>Try this demo in the latest version of Chrome or Firefox on a PC or Android device</p>';
+						},
+					},
+					]);
+				}
+			});
+		});
+	</script>
+</body>
+</html>
